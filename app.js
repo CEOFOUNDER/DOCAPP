@@ -48,12 +48,12 @@
         documentModel = localDocumentModel(input);
       }
       const blob = createDocxBlob(input, documentModel);
-      const filename = \`${safeFileName(input.clientName)}-${safeFileName(input.documentType)}.docx\`;
+      const filename = \`\${safeFileName(input.clientName)}-\${safeFileName(input.documentType)}.docx\`;
       downloadBlob(blob, filename);
       statusText.textContent = "Downloaded";
     } catch (error) {
       statusText.textContent = "Generation failed";
-      previewContent.innerHTML = \`<p class="status">${escapeHtml(error.message || "Document generation failed.")}</p>\`;
+      previewContent.innerHTML = \`<p class="status">\${escapeHtml(error.message || "Document generation failed.")}</p>\`;
     } finally {
       generateButton.disabled = false;
     }
