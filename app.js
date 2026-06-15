@@ -19,6 +19,109 @@
 (function () {
   const aiEndpoint = window.DOCAPP_API_URL || "/api/generate";
 
+  function installBenchmarkingReport() {
+    if (!options.documentTypes.includes("Benchmarking report")) {
+      const targetIndex = options.documentTypes.indexOf("Target operating model");
+      options.documentTypes.splice(targetIndex >= 0 ? targetIndex : options.documentTypes.length, 0, "Benchmarking report");
+    }
+
+    documentPlaybooks["Benchmarking report"] = {
+      purpose: "compare the client situation with trusted public benchmarks, peer evidence and source-backed external reference points",
+      sections: ["Benchmark Scope", "Trusted Public Sources", "Peer And Sector Comparison", "Performance Implications", "Source-Backed Recommendations"]
+    };
+
+    documentBlueprints["Benchmarking report"] = {
+      decisionSupported: "decide where the client appears above, in line with or behind public external benchmarks, and which gaps deserve management action",
+      chapters: [
+        "Benchmarking question and decision required",
+        "Public source strategy",
+        "Peer set and comparability rules",
+        "External benchmark baseline",
+        "Client comparison and interpretation",
+        "Performance gaps and opportunity areas",
+        "Source-backed recommendations",
+        "Limitations and evidence to validate"
+      ],
+      analyses: [
+        "Public-source benchmark scan",
+        "Peer-set and comparator logic",
+        "Metric definition and comparability review",
+        "External performance range analysis",
+        "Source freshness and reliability assessment"
+      ],
+      tables: [
+        "Public sources and benchmark relevance",
+        "Benchmark comparison table",
+        "Peer evidence and interpretation",
+        "Source limitations and validation needs"
+      ],
+      appendixWork: [
+        "Public source search and screening",
+        "Trusted-source extraction",
+        "Comparator and metric definition",
+        "Source freshness review",
+        "Benchmark interpretation and caveat review"
+      ]
+    };
+
+    const originalRelevantReferences = relevantReferences;
+    relevantReferences = function patchedRelevantReferences(input) {
+      const refs = new Set(originalRelevantReferences(input));
+      if (input.documentType === "Benchmarking report") {
+        [
+          "OECD Data - https://data.oecd.org/",
+          "World Bank Data - https://data.worldbank.org/",
+          "UK Office for National Statistics - https://www.ons.gov.uk/",
+          "GOV.UK official statistics - https://www.gov.uk/search/research-and-statistics",
+          "Companies House - https://find-and-update.company-information.service.gov.uk/",
+          "Public annual reports, regulator publications and recognised industry-body research"
+        ].forEach((item) => refs.add(item));
+      }
+      return Array.from(refs);
+    };
+
+    const originalBuildNarrative = buildNarrative;
+    buildNarrative = function patchedBuildNarrative(input) {
+      const narrative = originalBuildNarrative(input);
+      if (input.documentType === "Benchmarking report") {
+        narrative.context = (input.clientName || "The client") + " is considering how its " + input.process.toLowerCase() + " performance compares with publicly available benchmarks and peer evidence in " + input.industry.toLowerCase() + ". The document must distinguish sourced external evidence from assumptions.";
+        narrative.objective = "The objective is to compare the client situation with trusted public benchmarks, peer evidence and source-backed external reference points, then convert the findings into specific management actions.";
+        narrative.approach = "The work uses a public-source benchmarking method: define the benchmark question, identify trusted official or high-credibility sources, state comparator limits, extract source-backed ranges, compare the client situation, and reference every external claim in the report.";
+        narrative.styleNote = narrative.styleNote + " Benchmark claims should name the public source, date where available, URL and any comparability limitation.";
+      }
+      return narrative;
+    };
+
+    const originalMakeBlueprintTable = makeBlueprintTable;
+    makeBlueprintTable = function patchedMakeBlueprintTable(input, tableName) {
+      if (input.documentType === "Benchmarking report" && tableName.toLowerCase().includes("public sources")) {
+        return {
+          title: tableName,
+          headers: ["Source type", "Examples to check", "Benchmark use", "Required citation"],
+          rows: [
+            ["Official statistics", "OECD, World Bank, ONS, GOV.UK", "Sector or economy-level ranges", "Source name, page or dataset, year and URL"],
+            ["Public company evidence", "Annual reports, filings, investor presentations", "Peer operational or financial indicators", "Company, document title, reporting period and URL"],
+            ["Regulators and industry bodies", "Regulator reports, central banks, trade bodies", "Standards, adoption levels and compliance signals", "Publisher, publication date and URL"]
+          ]
+        };
+      }
+      if (input.documentType === "Benchmarking report" && tableName.toLowerCase().includes("benchmark comparison")) {
+        return {
+          title: tableName,
+          headers: ["Metric", "Client view", "Public benchmark", "Source", "Implication"],
+          rows: [
+            [input.process, "To be confirmed with client data", "Use a published external range or peer value", "Trusted public source URL required", "Shows whether the gap is material"],
+            [input.functionName, functionLens(input.functionName), "Use a sector or peer comparator", "Official, regulator or industry-body source required", "Keeps the recommendation evidence-backed"],
+            [input.industry, "Client context to be validated", "Use sector-level public data", "Publication title, year and URL required", "Prevents unsourced benchmark claims"]
+          ]
+        };
+      }
+      return originalMakeBlueprintTable(input, tableName);
+    };
+
+    loadOptions();
+  }
+
   async function fetchAiDocumentModel(input) {
     const response = await fetch(aiEndpoint, {
       method: "POST",
@@ -59,6 +162,7 @@
     }
   }
 
+  installBenchmarkingReport();
   generateButton.addEventListener("click", generateAiDocx, true);
 }());
 `;
