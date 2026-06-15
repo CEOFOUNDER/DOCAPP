@@ -16,6 +16,8 @@ https://ceofounder.github.io/DOCAPP/
 
 For full AI document generation, deploy this repository to Cloudflare Pages. Cloudflare Pages serves the frontend and the secure API function at `/api/generate`.
 
+The **Benchmarking report** document type uses publicly available information by default. The Cloudflare Function forces OpenAI web search for that type and asks for trusted public-source references, source URLs and comparability limitations in the report.
+
 ## Cloudflare setup
 
 1. In Cloudflare, go to **Workers & Pages**.
