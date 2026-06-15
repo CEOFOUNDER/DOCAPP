@@ -17,43 +17,14 @@ export async function onRequestPost({ request, env }) {
 
     const body = await request.json();
     const input = normaliseInput(body.input || body);
+    const requestBody = buildOpenAIRequest(input, env);
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${env.OPENAI_API_KEY}`
       },
-      body: JSON.stringify({
-        model: env.OPENAI_MODEL || "gpt-5.2",
-        instructions: [
-          "You are a senior management consultant writing final client-ready Word document content in British English.",
-          "Return only JSON matching the supplied schema. Do not include markdown, explanations, prompts, internal notes or model commentary.",
-          "Write at a level suitable for a paying executive client: specific, structured, commercially grounded and complete.",
-          "Use only facts provided by the user. Do not fabricate names, meetings, dates, quotes, figures or insider knowledge.",
-          "Where evidence is missing, state the assumption or evidence required in a client-ready way.",
-          "Make the recommendation clear early, then support it with practical analysis, tables, risks, actions and assumptions."
-        ].join(" "),
-        input: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: JSON.stringify(buildBrief(input), null, 2)
-              }
-            ]
-          }
-        ],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "consulting_document",
-            strict: true,
-            schema: documentSchema()
-          },
-          verbosity: "high"
-        }
-      })
+      body: JSON.stringify(requestBody)
     });
 
     const payload = await response.json().catch(() => ({}));
@@ -99,8 +70,71 @@ function normaliseInput(raw = {}) {
   };
 }
 
+function isBenchmarkingReport(input) {
+  return input.documentType === "Benchmarking report";
+}
+
+function buildOpenAIRequest(input, env) {
+  const benchmarking = isBenchmarkingReport(input);
+  const request = {
+    model: env.OPENAI_MODEL || "gpt-5.2",
+    instructions: buildInstructions(input).join(" "),
+    input: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: JSON.stringify(buildBrief(input), null, 2)
+          }
+        ]
+      }
+    ],
+    text: {
+      format: {
+        type: "json_schema",
+        name: "consulting_document",
+        strict: true,
+        schema: documentSchema()
+      },
+      verbosity: "high"
+    }
+  };
+
+  if (benchmarking) {
+    request.tools = [{ type: "web_search" }];
+    request.tool_choice = "required";
+  }
+
+  return request;
+}
+
+function buildInstructions(input) {
+  const instructions = [
+    "You are a senior management consultant writing final client-ready Word document content in British English.",
+    "Return only JSON matching the supplied schema. Do not include markdown, explanations, prompts, internal notes or model commentary.",
+    "Write at a level suitable for a paying executive client: specific, structured, commercially grounded and complete.",
+    "Use only facts provided by the user. Do not fabricate names, meetings, dates, quotes, figures or insider knowledge.",
+    "Where evidence is missing, state the assumption or evidence required in a client-ready way.",
+    "Make the recommendation clear early, then support it with practical analysis, tables, risks, actions and assumptions."
+  ];
+
+  if (isBenchmarkingReport(input)) {
+    instructions.push(
+      "This is a Benchmarking report. Use web search by default and base external benchmark claims only on publicly available trusted sources.",
+      "Prioritise official statistics, government data, regulators, central banks, recognised industry bodies, public company annual reports, public filings and reputable research that is publicly accessible.",
+      "Do not invent benchmark values, source names, dates, URLs or peer facts. If a reliable public benchmark cannot be found, state the evidence gap and the source that should be obtained.",
+      "Include source names, publication titles or dataset names, publication years where available, and URLs in appendix.references.",
+      "Include at least one table that links each benchmark or comparator to its source and states any comparability limitations."
+    );
+  }
+
+  return instructions;
+}
+
 function buildBrief(input) {
-  return {
+  const benchmarking = isBenchmarkingReport(input);
+  const brief = {
     task: "Create a client-ready consulting document model for a DOCX generator.",
     client: input.clientName,
     documentType: input.documentType,
@@ -126,6 +160,28 @@ function buildBrief(input) {
       "Appendix methodology should explain how the work was done, not list generic buzzwords."
     ]
   };
+
+  if (benchmarking) {
+    brief.publicSourcePolicy = {
+      defaultResearchMode: "Use public web search for this document type.",
+      trustedSources: [
+        "Official statistics and government datasets",
+        "OECD, World Bank, IMF, ONS, GOV.UK and comparable national statistical offices",
+        "Regulators, central banks and recognised industry bodies",
+        "Public annual reports, public filings and investor presentations",
+        "Reputable public research reports where methodology and publication date are visible"
+      ],
+      citationRequirement: "Every external benchmark claim must be traceable to a named public source and URL in appendix.references and, where useful, a source table.",
+      limitationsRequirement: "State metric definitions, peer-set limits, publication date, geography and comparability caveats."
+    };
+    brief.contentGuidance.push(
+      "For Benchmarking report, include a public-source strategy section.",
+      "For Benchmarking report, include a benchmark comparison table with metric, client view, public benchmark, source URL and implication.",
+      "For Benchmarking report, include explicit source limitations and validation needs."
+    );
+  }
+
+  return brief;
 }
 
 function documentSchema() {
