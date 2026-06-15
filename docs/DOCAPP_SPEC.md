@@ -77,6 +77,23 @@ The document model must keep the fields consumed by the DOCX writer:
 
 The frontend must keep a local model fallback. If the AI call fails, the app should still generate a DOCX and show `AI unavailable; using local model`.
 
+## Document Types
+
+The app supports structured consulting documents including:
+
+- Current-state assessment
+- Market/customer analysis
+- Business case
+- Benchmarking report
+- Target operating model
+- Roadmap
+- Gap analysis
+- Recommendation memo
+- Client status update
+- RFP/proposal
+
+Benchmarking report is a protected document type. It must use publicly available information by default through the Cloudflare backend, force the OpenAI `web_search` tool, prioritise trusted public sources, and include source names, publication or dataset names, dates where available, URLs and comparability limitations in the generated report.
+
 ## Cloudflare Configuration
 
 Cloudflare Pages project:
@@ -101,6 +118,7 @@ After changing secrets or environment variables, redeploy the project.
 - Keep the Cloudflare Function path at `functions/api/generate.js` unless the frontend endpoint and docs are updated in the same change.
 - Keep `/api/generate` as the default frontend endpoint unless all docs and tests are updated.
 - Keep a non-AI local fallback document model.
+- Keep Benchmarking report as a first-class document type with trusted public-source sourcing and explicit references.
 - Keep DOCX generation browser-side unless there is a deliberate architecture update.
 - Keep `README.md`, this specification, and `docs/DOCAPP_GUARDRAILS_SKILL.md` aligned with behaviour.
 
