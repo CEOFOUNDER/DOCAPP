@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consulting Document Studio</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="toolbar">
+        <div>
+          <p class="eyebrow">Client-ready DOCX generator</p>
+          <h1>Consulting Document Studio</h1>
+        </div>
+        <div class="actions">
+          <button id="refreshButton" type="button" class="secondary-button">Refresh</button>
+          <button id="generateButton" class="primary-button" type="button">Generate DOCX</button>
+        </div>
+      </section>
+
+      <section class="workbench">
+        <form id="documentForm" class="panel">
+          <div class="field-grid">
+            <label>
+              <span>Client</span>
+              <input name="clientName" value="Acme plc" autocomplete="organization">
+            </label>
+            <label>
+              <span>Document type</span>
+              <select name="documentType"></select>
+            </label>
+            <label>
+              <span>Economic buyer</span>
+              <select name="buyer"></select>
+            </label>
+            <label>
+              <span>Industry</span>
+              <select name="industry"></select>
+            </label>
+            <label>
+              <span>Function</span>
+              <select name="functionName"></select>
+            </label>
+            <label>
+              <span>Process</span>
+              <select name="process"></select>
+            </label>
+            <label>
+              <span>Writing mode</span>
+              <select name="style"></select>
+            </label>
+            <label>
+              <span>Tone</span>
+              <select name="tone"></select>
+            </label>
+          </div>
+
+          <label class="wide">
+            <span>Optional title</span>
+            <input name="customTitle" placeholder="Leave blank to generate a contextual title">
+          </label>
+
+          <label class="wide">
+            <span>Situation notes</span>
+            <textarea name="situation" rows="4" placeholder="Add current facts, known issues, constraints, metrics, stakeholders or decisions required."></textarea>
+          </label>
+
+          <label class="wide">
+            <span>Client-specific facts and stakeholder language</span>
+            <textarea name="clientFacts" rows="4" placeholder="Add real names, dates, meetings, client phrases, internal terms, observed behaviours, local constraints or known sensitivities."></textarea>
+          </label>
+
+          <label class="wide">
+            <span>Consultant judgement</span>
+            <textarea name="consultantJudgement" rows="4" placeholder="Add your genuine view: what you think matters most, what you are unsure about, trade-offs, risks, or a lesson from comparable work."></textarea>
+          </label>
+
+          <label class="wide">
+            <span>Desired outcome</span>
+            <input name="desiredOutcome" placeholder="e.g. lower close cycle time, stronger control, higher forecast accuracy">
+          </label>
+
+          <label class="wide">
+            <span>Scope</span>
+            <textarea name="scope" rows="3" placeholder="Leave blank for a standard consulting scope."></textarea>
+          </label>
+        </form>
+
+        <aside class="preview">
+          <div class="preview-head">
+            <p class="eyebrow">Live preview</p>
+            <p id="statusText" class="status-text">Ready</p>
+          </div>
+          <article id="previewContent" class="preview-content"></article>
+        </aside>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
