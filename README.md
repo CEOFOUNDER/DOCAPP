@@ -14,5 +14,7 @@ It preserves the form, live preview and DOCX generation flow from the local app,
 
 - `index.html` - app shell
 - `styles.css` - application styling
-- `app.js` - options, preview model and DOCX generation
+- `app.js` - browser loader for the static app bundle
+- `app.bundle.*.b64` - encoded static application bundle used by GitHub Pages
+- `.github/workflows/pages.yml` - GitHub Pages deployment workflow
 - `.nojekyll` - keeps GitHub Pages from applying Jekyll processing
