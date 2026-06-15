@@ -36,7 +36,10 @@ Use this canonical rule set whenever Gilles says:
 - The backend must call the OpenAI Responses API, not expose the key to the browser.
 - The frontend default endpoint must remain `/api/generate` unless all references are changed together.
 - The frontend must catch AI failure and fall back to local document generation.
+- `Benchmarking report` must stay available as a document type.
+- Benchmarking reports must force OpenAI `web_search` in the Cloudflare Function and include trusted public-source references in the report.
 - The deployed app must include `index.html`, `styles.css`, `app.js`, `app.bundle.*.b64`, and `functions/api/generate.js`.
+- When the encoded bundle is not regenerated, small compatibility additions may live in the loader patch in `app.js`; document those additions clearly in the spec and guardrails.
 - Cloudflare Pages build settings must remain: production branch `main`, no build command, output directory `.`.
 - Documentation must explain that GitHub stores source code and Cloudflare stores the secret.
 - The app must not depend on the old Windows `.exe`, launcher, or local Node server.
